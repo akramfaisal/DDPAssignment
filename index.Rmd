@@ -17,6 +17,10 @@ knit        : slidify::knit2slides
 - Plot Histogram, Line Graph or Boxplot based on selection
 - Update plot when selection changes or date range selected changes
 
+
+
+Note: Please refresh page if graphs doesn't load correctly (Histogram/Line Graph)
+
 --- .class #id
 
 ## Plot Histogram
