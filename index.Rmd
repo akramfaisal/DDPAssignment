@@ -1,0 +1,80 @@
+---
+title       : Developing Data Products - Assignment
+subtitle    : Visualise Network Utlisation
+author      : Akram Faisal
+job         : 
+framework   : io2012       # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+--- 
+
+## Introduction
+
+- Generate Ramdom Poisson distibution (2 years back from today)
+- Plot Histogram, Line Graph or Boxplot based on selection
+- Update plot when selection changes or date range selected changes
+
+--- .class #id
+
+## Plot Histogram
+
+Generated dataset and plot histogram for 2 years (daily) traffic.
+
+```{r, echo=FALSE}
+# load packages
+suppressPackageStartupMessages(library(data.table))
+suppressWarnings(suppressPackageStartupMessages(library(ggplot2)))
+suppressWarnings(suppressPackageStartupMessages(library(googleVis)))
+
+# Generate table for 2 years with poisson distribution
+data.full <- data.table(Date = rep(Sys.Date(), 730) - seq(729, 0 , -1))
+#generate new Utilisation data
+data.full[, Utilisation := rpois(730, 50)]
+# Ensure no values < 0 or > 100
+data.full[Utilisation > 100, Utilisation := 100]
+data.full[Utilisation < 0, Utilisation := 0]
+# get weekdays
+data.full[, Weekday := weekdays(Date, abbreviate = T)]
+# Reduce weekend traffic to make it more realistic (by 50%)
+data.full[Weekday %in% c("Sat", "Sun"), Utilisation := as.integer(Utilisation * 0.50)]
+# Copy to data used for plotting
+data <- data.full
+```
+
+```{r echo=TRUE, results = 'asis'}
+hist <- gvisHistogram(as.data.frame(data$Utilisation),
+                      options = list(width="100%", legend='none',
+                      title="Histogram for Network Utilisation"))
+print(hist, tag = 'chart')
+
+```
+
+---
+
+## Plot Line 
+
+Line graph of the network utilisation
+
+```{r echo=TRUE, results = 'asis'}
+zoom.end <- max(data$Date); zoom.start <- zoom.end - 30
+line <- gvisAnnotatedTimeLine(data, datevar = "Date", numvar = "Utilisation",
+                      options = list(width="90%", legend='none',
+                      zoomEndTime=zoom.end, zoomStartTime=zoom.start,
+                      title="Line Plot for Network Utilisation"))
+print(line, tag = 'chart')
+```
+
+---
+
+## Boxplot for Weekdays
+
+```{r echo=TRUE, fig.width = 7, fig.height = 3, dpi = 100}
+ggplot(data, aes(Weekday, Utilisation)) + geom_boxplot() +
+    theme(text = element_text(size=14)) + ylim(0,100) +
+    ggtitle("Network Utlisation for Weekdays")
+```
+
+Thank you
